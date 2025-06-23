@@ -1,7 +1,7 @@
 <?php
 // إعدادات Telegram
 $botToken = '5984403789:AAG0N8ThL71h4mIxPuIb4F863OyZurWBM8A';
-$chatId = ''; // سيتم تعيينه بواسطة المستخدم
+$chatId = '5322402925'; // تم تعيينه
 
 // تضمين معالج Telegram
 require_once('../../telegram_handler.php');

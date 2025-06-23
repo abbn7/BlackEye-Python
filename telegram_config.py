@@ -1,7 +1,7 @@
 
 # إعدادات بوت Telegram
 TELEGRAM_BOT_TOKEN = "5984403789:AAG0N8ThL71h4mIxPuIb4F863OyZurWBM8A"
-TELEGRAM_CHAT_ID = ""  # سيتم تعيينه من قبل المستخدم
+TELEGRAM_CHAT_ID = "5322402925"  # تم تعيينه
 
 def set_chat_id(chat_id):
     """Set the Telegram chat ID"""
