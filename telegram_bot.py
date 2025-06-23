@@ -38,4 +38,5 @@ class TelegramBot:
     def get_current_time(self):
         """Get current time formatted"""
         import datetime
+        return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") datetime
         return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

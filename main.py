@@ -32,9 +32,6 @@ def print_colored(text, color=colors.WHITE, bold=False):
     print(f"{style}{color}{text}{colors.END}")
 
 try:
-    from theme import print_banner
-    print_banner()
-
     from theme import colors, print_colored
 
     print_colored("\n🚀 تشغيل قالب Instagram مباشرة...", colors.GREEN, bold=True)
