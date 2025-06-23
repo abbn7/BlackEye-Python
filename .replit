@@ -2,15 +2,3 @@ modules = ["web", "php-8.2", "nodejs-20", "python-3.12"]
 
 [nix]
 channel = "stable-24_05"
-
-[workflows]
-runButton = "Run BlackEye"
-
-[[workflows.workflow]]
-name = "Run BlackEye"
-author = 44171727
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python main.py"
