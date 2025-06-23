@@ -1,0 +1,96 @@
+import os
+import sys
+import subprocess
+
+# رابط مستودع BlackEye-Python على GitHub
+# GitHub repository link for BlackEye-Python
+GITHUB_REPO_URL = "https://github.com/M4cs/BlackEye-Python.git"
+# اسم الدليل الذي سيتم استنساخ المستودع إليه
+# The directory name where the repository will be cloned
+REPO_DIRECTORY = "BlackEye-Python"
+
+def check_command_exists(command_name):
+    """
+    الدالة للتحقق مما إذا كان أمر معين (مثل git, php) مثبتًا في النظام.
+    Function to check if a specific command (e.g., git, php) is installed on the system.
+    """
+    try:
+        # تشغيل الأمر مع خيار --version للتحقق من وجوده
+        # Run the command with --version option to check its existence
+        subprocess.run([command_name, '--version'], check=True, capture_output=True, text=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # إذا فشل الأمر أو لم يتم العثور عليه
+        # If the command fails or is not found
+        return False
+
+def run_blackeye_project():
+    """
+    الدالة الرئيسية لتشغيل مشروع BlackEye-Python.
+    Main function to run the BlackEye-Python project.
+    """
+    print("--- بدء تشغيل BlackEye-Python ---")
+    print("ملاحظة هامة: هذه الأداة لأغراض تعليمية فقط. يرجى استخدامها بمسؤولية.")
+    print(f"رابط المستودع: {GITHUB_REPO_URL}\n")
+
+    # الخطوة 1: التحقق من تثبيت Git
+    # Step 1: Check if Git is installed
+    print("التحقق من توفر 'git'...")
+    if not check_command_exists("git"):
+        print("خطأ: 'git' غير مثبت. يرجى تثبيته أولاً.")
+        print("   لأنظمة Linux/Ubuntu: sudo apt install git")
+        print("   لأنظمة Windows: قم بتنزيل وتثبيت Git Bash.")
+        sys.exit(1)
+    print("'git' موجود.")
+
+    # الخطوة 2: استنساخ المستودع إذا لم يكن موجودًا بالفعل
+    # Step 2: Clone the repository if it doesn't already exist
+    if not os.path.exists(REPO_DIRECTORY):
+        print(f"جارٍ استنساخ المستودع من {GITHUB_REPO_URL}...")
+        try:
+            # استخدام os.system لتنفيذ أوامر shell
+            # Using os.system to execute shell commands
+            os.system(f"git clone {GITHUB_REPO_URL}")
+            if not os.path.exists(REPO_DIRECTORY):
+                raise Exception("فشل في استنساخ المستودع.")
+            print("تم استنساخ المستودع بنجاح.")
+        except Exception as e:
+            print(f"حدث خطأ أثناء استنساخ المستودع: {e}")
+            sys.exit(1)
+    else:
+        print(f"المستودع '{REPO_DIRECTORY}' موجود بالفعل. تخطي خطوة الاستنساخ.")
+        # يمكنك هنا إضافة os.system(f"cd {REPO_DIRECTORY} && git pull") لتحديث المشروع إذا أردت
+        # You can add os.system(f"cd {REPO_DIRECTORY} && git pull") here to update the project if desired
+
+    # الخطوة 3: الانتقال إلى دليل المشروع
+    # Step 3: Change into the project directory
+    try:
+        os.chdir(REPO_DIRECTORY)
+        print(f"تم الانتقال إلى دليل المشروع: {os.getcwd()}")
+    except OSError as e:
+        print(f"خطأ في الانتقال إلى دليل المشروع: {e}")
+        sys.exit(1)
+
+    # الخطوة 4: تذكير بالمتطلبات الإضافية (PHP و SSH)
+    # Step 4: Remind about additional requirements (PHP and SSH)
+    print("\n--- متطلبات إضافية ---")
+    print("مشروع BlackEye يتطلب PHP و OpenSSH Client ليعمل بشكل صحيح.")
+    print("يرجى التأكد من تثبيتهما على نظامك:")
+    print("- لتثبيت PHP (لأنظمة Linux/Ubuntu): sudo apt install php")
+    print("- لتثبيت OpenSSH Client (لأنظمة Linux/Ubuntu): sudo apt install openssh-client")
+    print("عادةً ما تكون هذه البرامج مثبتة مسبقًا على معظم أنظمة Linux.")
+    print("----------------------\n")
+
+    # الخطوة 5: تشغيل السكريبت الرئيسي للمشروع (main.py)
+    # Step 5: Run the main project script (main.py)
+    print("جارٍ تشغيل BlackEye...")
+    try:
+        # تشغيل main.py باستخدام مفسر بايثون 3
+        # Running main.py using the python3 interpreter
+        os.system("python3 main.py")
+    except Exception as e:
+        print(f"حدث خطأ أثناء تشغيل 'main.py': {e}")
+        print("يرجى التأكد من أن Python3 مثبت بشكل صحيح وأن جميع المتطلبات الأخرى متوفرة في مسار النظام (PATH).")
+
+if __name__ == "__main__":
+    run_blackeye_project()
