@@ -6,3 +6,15 @@ channel = "stable-24_05"
 [[ports]]
 localPort = 80
 externalPort = 80
+
+[workflows]
+runButton = "Run BlackEye"
+
+[[workflows.workflow]]
+name = "Run BlackEye"
+author = 44171727
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
